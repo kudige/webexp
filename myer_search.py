@@ -11,9 +11,19 @@ from typing import Dict, List
 import requests
 
 
-def search_myer(keyword: str) -> List[Dict[str, str]]:
-    """Return a list of products matching the keyword."""
+def search_myer(keyword: str, department: str | None = None) -> List[Dict[str, str]]:
+    """Return a list of products matching the keyword.
+
+    Parameters
+    ----------
+    keyword:
+        Term to search for.
+    department:
+        Optional department slug to scope the search, e.g. ``"beauty"``.
+    """
     url = f"https://www.myer.com.au/search?query={keyword}"
+    if department:
+        url += f"&department={department}"
     headers = {"User-Agent": "Mozilla/5.0"}
     resp = requests.get(url, headers=headers)
     resp.raise_for_status()
@@ -50,18 +60,37 @@ def search_myer(keyword: str) -> List[Dict[str, str]]:
         else:
             price = f"{price_from}-{price_to}"
         details = item.get("merchCategory", "").strip()
-        results.append({"name": name, "price": price, "details": details})
+        seo_token = item.get("seoToken", "")
+        product_url = f"https://www.myer.com.au/p/{seo_token}" if seo_token else ""
+        results.append({
+            "name": name,
+            "price": price,
+            "details": details,
+            "url": product_url,
+        })
     return results
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Search Myer for products")
     parser.add_argument("keyword", help="Keyword to search for")
+    parser.add_argument(
+        "--department",
+        help="Department slug to filter results (e.g. 'beauty')",
+    )
+    parser.add_argument(
+        "--show-url",
+        action="store_true",
+        help="Display the product URL for each result",
+    )
     args = parser.parse_args()
 
-    results = search_myer(args.keyword)
+    results = search_myer(args.keyword, department=args.department)
     for product in results:
-        print(f"{product['name']} | {product['price']} | {product['details']}")
+        line = f"{product['name']} | {product['price']} | {product['details']}"
+        if args.show_url and product.get("url"):
+            line += f" | {product['url']}"
+        print(line)
 
 
 if __name__ == "__main__":
