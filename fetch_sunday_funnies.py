@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Fetch and cache "Sunday Funnies" posts."""
 
 import requests
