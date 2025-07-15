@@ -1,83 +1,55 @@
 # coding: utf-8
-"""Simple product searcher supporting multiple retailers."""
+"""Simple product searcher with pluggable retailer implementations."""
 
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Type
 
 import requests
 
 
 class RetailerSearcher:
-    """Search for products and list categories for supported retailers.
+    """Base class for retailer-specific searchers."""
 
-    Parameters
-    ----------
-    retailer:
-        Name of the retailer. Supported retailers are keys of
-        :pydata:`RETAILER_ENDPOINTS`.
-    """
-
-    RETAILER_ENDPOINTS: Dict[str, Dict[str, str]] = {
-        "dummyjson": {
-            "categories": "https://dummyjson.com/products/categories",
-            "category": "https://dummyjson.com/products/category/{category}",
-            "search": "https://dummyjson.com/products/search?q={keyword}",
-        },
-        # Additional retailers can be added here.
-    }
-
-    def __init__(self, retailer: str) -> None:
-        retailer = retailer.lower()
-        if retailer not in self.RETAILER_ENDPOINTS:
-            raise ValueError(f"Unsupported retailer: {retailer}")
-        self.retailer = retailer
-        self.endpoints = self.RETAILER_ENDPOINTS[retailer]
+    retailer: str = ""
 
     def list_categories(self) -> List[str]:
-        """Return available category slugs for the retailer."""
-        url = self.endpoints.get("categories")
-        if not url:
-            raise NotImplementedError(
-                f"Listing categories not supported for retailer '{self.retailer}'"
-            )
+        """Return category slugs available for the retailer."""
+        raise NotImplementedError
+
+    def search(self, keyword: str, category: str | None = None) -> List[Dict[str, Any]]:
+        """Return a list of products for the given keyword and optional category."""
+        raise NotImplementedError
+
+
+class DummyJsonSearcher(RetailerSearcher):
+    retailer = "dummyjson"
+    BASE_URL = "https://dummyjson.com/products"
+
+    def _request(self, endpoint: str, **params: str) -> Any:
+        url = f"{self.BASE_URL}/{endpoint}"
+        if params:
+            query = "&".join(f"{k}={v}" for k, v in params.items())
+            url = f"{url}?{query}"
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
-        data = resp.json()
-        # dummyjson returns a list of objects with `slug` and `name` keys.
+        return resp.json()
+
+    def list_categories(self) -> List[str]:
+        data = self._request("categories")
         if isinstance(data, list):
-            # Accept either list[str] or list[dict]
             if data and isinstance(data[0], dict):
                 return [c.get("slug", "") for c in data]
             return [str(c) for c in data]
         raise ValueError("Unexpected response while listing categories")
 
     def search(self, keyword: str, category: str | None = None) -> List[Dict[str, Any]]:
-        """Search for products.
-
-        Parameters
-        ----------
-        keyword:
-            Keyword to search for.
-        category:
-            Optional category slug to limit the search.
-        """
         keyword = keyword.strip()
         if not keyword:
             return []
-
-        # Searching within a category isn't always supported natively.
         if category:
-            category_url = self.endpoints.get("category")
-            if not category_url:
-                raise NotImplementedError(
-                    f"Category search not supported for '{self.retailer}'"
-                )
-            url = category_url.format(category=category)
-            resp = requests.get(url, timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
+            data = self._request(f"category/{category}")
             items = data.get("products", []) if isinstance(data, dict) else []
             keyword_re = re.compile(re.escape(keyword), re.I)
             return [
@@ -86,22 +58,26 @@ class RetailerSearcher:
                 if keyword_re.search(item.get("title", ""))
                 or keyword_re.search(item.get("description", ""))
             ]
-
-        search_url = self.endpoints.get("search")
-        if not search_url:
-            raise NotImplementedError(
-                f"General search not supported for '{self.retailer}'"
-            )
-        url = search_url.format(keyword=keyword)
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
+        data = self._request("search", q=keyword)
         return data.get("products", []) if isinstance(data, dict) else []
+
+
+RETAILER_MAP: Dict[str, Type[RetailerSearcher]] = {
+    DummyJsonSearcher.retailer: DummyJsonSearcher,
+}
+
+
+def create_searcher(retailer: str) -> RetailerSearcher:
+    """Return a searcher instance for the given retailer."""
+    retailer = retailer.lower()
+    if retailer not in RETAILER_MAP:
+        raise ValueError(f"Unsupported retailer: {retailer}")
+    return RETAILER_MAP[retailer]()
 
 
 if __name__ == "__main__":
     # Example usage when run directly
-    searcher = RetailerSearcher("dummyjson")
+    searcher = create_searcher("dummyjson")
     cats = searcher.list_categories()
     print("Categories:", ", ".join(cats[:5]), "...")
     results = searcher.search("phone", category=cats[0])
