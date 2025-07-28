@@ -1,4 +1,7 @@
 import argparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Example base attack stats for troops by type and tier.
 # In a real implementation these should be replaced with accurate values.
@@ -77,17 +80,47 @@ COEFF_VS_PAN = {
 
 def calc_troop_attack(base_atk, attack_buff_pct, absolute_buff=0):
     """Compute troop attack after buffs."""
-    return base_atk * (1 + attack_buff_pct / 100.0) + absolute_buff
+    result = base_atk * (1 + attack_buff_pct / 100.0) + absolute_buff
+    logger.debug(
+        "Troop attack: base=%s buff_pct=%s absolute_buff=%s result=%s",
+        base_atk,
+        attack_buff_pct,
+        absolute_buff,
+        result,
+    )
+    return result
 
 def calc_monster_def(default_def, defense_debuff_pct):
     """Compute monster defense after debuff."""
-    return default_def * (1 - defense_debuff_pct / 100.0)
+    result = default_def * (1 - defense_debuff_pct / 100.0)
+    logger.debug(
+        "Monster defense: default=%s debuff_pct=%s result=%s",
+        default_def,
+        defense_debuff_pct,
+        result,
+    )
+    return result
 
 def calc_damage_per_soldier(coeff, troop_atk, monster_def):
-    return coeff * troop_atk * troop_atk / (troop_atk + monster_def)
+    result = coeff * troop_atk * troop_atk / (troop_atk + monster_def)
+    logger.debug(
+        "Damage per soldier: coeff=%s troop_atk=%s monster_def=%s result=%s",
+        coeff,
+        troop_atk,
+        monster_def,
+        result,
+    )
+    return result
 
 def troops_needed(monster_hp, dmg_per_soldier):
-    return monster_hp / dmg_per_soldier
+    result = monster_hp / dmg_per_soldier
+    logger.debug(
+        "Troops needed: hp=%s dmg_per_soldier=%s result=%s",
+        monster_hp,
+        dmg_per_soldier,
+        result,
+    )
+    return result
 
 def calculate_troops(troop_type, tier, monster_name,
                      attack_buff=0, def_debuff=0, absolute_buff=0,
@@ -102,10 +135,29 @@ def calculate_troops(troop_type, tier, monster_name,
     key = 't1-t10' if tier <= 10 else 't11-t16'
     coeff = coeff_table[troop_type][key]
 
+    logger.debug(
+        "Calculating troops for type=%s tier=%s monster=%s (hp=%s defense=%s)",
+        troop_type,
+        tier,
+        monster_name,
+        monster['hp'],
+        monster['defense'],
+    )
+    logger.debug(
+        "Base attack=%s, attack_buff=%s, def_debuff=%s, absolute_buff=%s, coeff=%s",
+        base_atk,
+        attack_buff,
+        def_debuff,
+        absolute_buff,
+        coeff,
+    )
+
     troop_attack = calc_troop_attack(base_atk, attack_buff, absolute_buff)
     monster_def = calc_monster_def(monster['defense'], def_debuff)
     dmg = calc_damage_per_soldier(coeff, troop_attack, monster_def)
     needed = troops_needed(monster['hp'], dmg)
+
+    logger.debug("Resulting troops needed (rounded) = %s", int(needed))
 
     return int(needed)
 
@@ -120,7 +172,10 @@ def main():
     parser.add_argument('--def-debuff', type=float, default=0, help='monster defense debuff percentage')
     parser.add_argument('--absolute-buff', type=float, default=0, help='absolute attack buff')
     parser.add_argument('--vs-pan', action='store_true', help='use VS Pan coefficients')
+    parser.add_argument('--debug', action='store_true', help='enable debug logging')
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.WARNING)
 
     result = calculate_troops(
         args.troop_type,
