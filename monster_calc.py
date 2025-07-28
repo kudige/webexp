@@ -80,9 +80,31 @@ def calc_damage_per_soldier(coeff, troop_atk, monster_def):
 def troops_needed(monster_hp, dmg_per_soldier):
     return monster_hp / dmg_per_soldier
 
+def calculate_troops(troop_type, tier, monster_name,
+                     attack_buff=0, def_debuff=0, absolute_buff=0,
+                     vs_pan=False):
+    """Return the number of troops needed for zero wounded."""
+    base_atk = TROOP_STATS.get((troop_type, tier))
+    if base_atk is None:
+        raise ValueError('Unknown troop type or tier')
+
+    monster = MONSTER_DATA[monster_name]
+    coeff_table = COEFF_VS_PAN if vs_pan else COEFF_BASIC
+    key = 't1-t10' if tier <= 10 else 't11-t16'
+    coeff = coeff_table[troop_type][key]
+
+    troop_attack = calc_troop_attack(base_atk, attack_buff, absolute_buff)
+    monster_def = calc_monster_def(monster['defense'], def_debuff)
+    dmg = calc_damage_per_soldier(coeff, troop_attack, monster_def)
+    needed = troops_needed(monster['hp'], dmg)
+
+    return int(needed)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Calculate troops needed to kill a monster without wounded")
-    parser.add_argument('troop_type', choices=['ground','ranged','mounted','siege'])
+    parser = argparse.ArgumentParser(
+        description="Calculate troops needed to kill a monster without wounded")
+    parser.add_argument('troop_type', choices=['ground', 'ranged', 'mounted', 'siege'])
     parser.add_argument('tier', type=int, help='troop tier, e.g. 10 for T10')
     parser.add_argument('monster', choices=list(MONSTER_DATA))
     parser.add_argument('--attack-buff', type=float, default=0, help='attack buff percentage')
@@ -91,21 +113,17 @@ def main():
     parser.add_argument('--vs-pan', action='store_true', help='use VS Pan coefficients')
     args = parser.parse_args()
 
-    base_atk = TROOP_STATS.get((args.troop_type, args.tier))
-    if base_atk is None:
-        raise SystemExit('Unknown troop type or tier')
+    result = calculate_troops(
+        args.troop_type,
+        args.tier,
+        args.monster,
+        attack_buff=args.attack_buff,
+        def_debuff=args.def_debuff,
+        absolute_buff=args.absolute_buff,
+        vs_pan=args.vs_pan,
+    )
 
-    monster = MONSTER_DATA[args.monster]
-    coeff_table = COEFF_VS_PAN if args.vs_pan else COEFF_BASIC
-    key = 't1-t10' if args.tier <= 10 else 't11-t16'
-    coeff = coeff_table[args.troop_type][key]
-
-    troop_attack = calc_troop_attack(base_atk, args.attack_buff, args.absolute_buff)
-    monster_def = calc_monster_def(monster['defense'], args.def_debuff)
-    dmg = calc_damage_per_soldier(coeff, troop_attack, monster_def)
-    needed = troops_needed(monster['hp'], dmg)
-
-    print(int(needed))
+    print(result)
 
 if __name__ == '__main__':
     main()
