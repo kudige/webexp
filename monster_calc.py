@@ -40,6 +40,9 @@ TROOP_STATS = {
     ('siege', 16): 3380,
 }
 
+# Simplified troop HP values derived from base attack stats.
+TROOP_HP = {k: v * 4 for k, v in TROOP_STATS.items()}
+
 # Monster HP (power) and default defense values (approx). The defense values
 # are fictional placeholders.
 MONSTER_DATA = {
@@ -99,6 +102,8 @@ MONSTER_DATA = {
 
     # ... add additional monsters as needed
 }
+# Approximate monster attack values derived from defense.
+MONSTER_ATTACK = {name: data["defense"] * 0.2 for name, data in MONSTER_DATA.items()}
 
 # Compatibility coefficients vs monsters
 COEFF_BASIC = {
@@ -158,6 +163,47 @@ def troops_needed(monster_hp, dmg_per_soldier):
         result,
     )
     return result
+
+def calculate_wounded(troop_type, tier, monster_name, troop_count,
+                      attack_buff=0, def_debuff=0, absolute_buff=0,
+                      vs_pan=False):
+    """Estimate wounded troops by simulating battle rounds."""
+    base_atk = TROOP_STATS[(troop_type, tier)]
+    troop_hp = TROOP_HP[(troop_type, tier)]
+    monster = MONSTER_DATA[monster_name]
+
+    coeff_table = COEFF_VS_PAN if vs_pan else COEFF_BASIC
+    if vs_pan:
+        key = monster_name[:-2]
+    else:
+        key = 't1-t10' if tier <= 10 else 't11-t16'
+    coeff = coeff_table[troop_type][key]
+
+    troop_attack = calc_troop_attack(base_atk, attack_buff, absolute_buff)
+    monster_def = calc_monster_def(monster['defense'], def_debuff)
+    dmg_per_soldier = calc_damage_per_soldier(coeff, troop_attack, monster_def)
+
+    monster_hp = monster['hp']
+    monster_atk = MONSTER_ATTACK.get(monster_name, monster['defense'] * 0.2)
+    wounded = 0
+
+    while monster_hp > 0 and troop_count > 0:
+        monster_hp -= dmg_per_soldier * troop_count
+        if monster_hp <= 0:
+            break
+        casualties = int(monster_atk / troop_hp)
+        casualties = max(1, casualties)
+        casualties = min(troop_count, casualties)
+        troop_count -= casualties
+        wounded += casualties
+
+    logger.debug(
+        "Battle ended: remaining_troops=%s monster_hp=%s wounded=%s",
+        troop_count,
+        monster_hp,
+        wounded,
+    )
+    return wounded
 
 def calculate_troops(troop_type, tier, monster_name,
                      attack_buff=0, def_debuff=0, absolute_buff=0,
@@ -222,20 +268,33 @@ def main():
     parser.add_argument('--def-debuff', type=float, default=0, help='monster defense debuff percentage')
     parser.add_argument('--absolute-buff', type=float, default=0, help='absolute attack buff')
     parser.add_argument('--vs-pan', action='store_true', help='use VS Pan coefficients')
+    parser.add_argument('--troops', type=int, help='troop count to estimate wounded')
     parser.add_argument('--debug', action='store_true', help='enable debug logging')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.WARNING)
 
-    result = calculate_troops(
-        args.troop_type,
-        args.tier,
-        args.monster,
-        attack_buff=args.attack_buff,
-        def_debuff=args.def_debuff,
-        absolute_buff=args.absolute_buff,
-        vs_pan=args.vs_pan,
-    )
+    if args.troops is not None:
+        result = calculate_wounded(
+            args.troop_type,
+            args.tier,
+            args.monster,
+            args.troops,
+            attack_buff=args.attack_buff,
+            def_debuff=args.def_debuff,
+            absolute_buff=args.absolute_buff,
+            vs_pan=args.vs_pan,
+        )
+    else:
+        result = calculate_troops(
+            args.troop_type,
+            args.tier,
+            args.monster,
+            attack_buff=args.attack_buff,
+            def_debuff=args.def_debuff,
+            absolute_buff=args.absolute_buff,
+            vs_pan=args.vs_pan,
+        )
 
     print(result)
 
