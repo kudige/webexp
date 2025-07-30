@@ -14,13 +14,14 @@ TROOP_STATS = {
     ('ground', 15): 1877,
     ('ground', 16): 2222,
 
-    ('mounted', 10): 620,
-    ('mounted', 11): 820,
-    ('mounted', 12): 1105,
-    ('mounted', 13): 1415,
-    ('mounted', 14): 1730,
-    ('mounted', 15): 2070,
-    ('mounted', 16): 2420,
+    # correct values
+    ('mounted', 10): 3320,
+    ('mounted', 11): 4150,
+    ('mounted', 12): 5187,
+    ('mounted', 13): 5800,
+    ('mounted', 14): 6670,
+    ('mounted', 15): 7540,
+    ('mounted', 16): 8780,
 
     ('ranged', 10): 585,
     ('ranged', 11): 780,
@@ -42,24 +43,60 @@ TROOP_STATS = {
 # Monster HP (power) and default defense values (approx). The defense values
 # are fictional placeholders.
 MONSTER_DATA = {
-    'Azazel':      {'hp': 2.6e9, 'defense': 3000},
+    'Agalope':      {'hp': 5488952582, 'defense': 984422.0478836844},
     'Kraken':      {'hp': 1.6e9, 'defense': 2500},
     'Stymphalian Bird': {'hp': 1.1e9, 'defense': 2300},
     'King of the Vikings': {'hp': 1e9, 'defense': 2100},
-    'Sphinx 1':    {'hp': 12.4e6,  'defense': 1400},
-    'Sphinx 2':    {'hp': 22.3e6,  'defense': 1500},
-    'Sphinx 3':    {'hp': 74.5e6,  'defense': 1600},
-    'Sphinx 7':    {'hp': 914.4e6, 'defense': 2000},
-    'Witch 1':     {'hp': 13e6,    'defense': 1200},
-    'Witch 2':     {'hp': 24.6e6,  'defense': 1300},
-    'Witch 3':     {'hp': 85.6e6,  'defense': 1450},
+    'Sphinx 1':    {'hp': 704297985,  'defense': 170559.99849695482},
+    'Sphinx 2':    {'hp': 1000000000,  'defense': 196040.00578249115},
+    'Sphinx 3':    {'hp': 3548891756,  'defense': 568515.9690187828},
+    'Witch 1':     {'hp': 704297985,    'defense': 170559.99849695482},
+    'Witch 2':     {'hp': 1869964315,  'defense': 296040.0051484122},
+    'Witch 3':     {'hp': 4059876170,  'defense': 723840.0604081601},
     'Ammit':       {'hp': 800.1e6, 'defense': 1800},
-    'Cerberus 1':  {'hp': 68.2e6,  'defense': 1400},
+    'Cerberus 1':  {'hp': 1539953030,  'defense': 165880.00432143305},
     'Cerberus 2':  {'hp': 153.4e6, 'defense': 1500},
     'Cerberus 3':  {'hp': 234.2e6, 'defense': 1600},
     'Cerberus 4':  {'hp': 694.9e6, 'defense': 1700},
-    'Hydra 5':     {'hp': 678.8e6, 'defense': 1700},
-    'Lava Turtle 6': {'hp': 668.1e6, 'defense': 1600},
+    'Knight 1':	   { 'hp': 1539953030, 'defense': 165880.0},
+    'Knight 2':	   { 'hp': 7547309800, 'defense': 1353581.0},
+    'Hydra 1':     {'hp': 3856882361, 'defense': 687648.0095408165},
+    'Hydra 2':     {'hp': 66942388250, 'defense': 1444060.0791483587},
+    'Lava 1': 	   {'hp': 704297985, 'defense': 170560.00000000003},
+    'Ymir 1':	   { 'hp': 599981700, 'defense': 188500.0},
+    'Ymir 2':	   { 'hp': 3247900936, 'defense': 506688.0},
+    'Golem 1':	   { 'hp': 404297985, 'defense': 170560.00000000003},
+    'Golem 2':	   { 'hp': 1169964315, 'defense': 196040.0},
+    'Golem 3':	   { 'hp': 3548891756, 'defense': 568516.0},
+    'Lava 1':	   { 'hp': 404297985, 'defense': 170560.00000000003},
+    'Lava 2':	   { 'hp': 1169964315, 'defense': 196040.0},
+    'Lava 3':	   { 'hp': 3548891756, 'defense': 568516.0},
+    'Warlord 1':   { 'hp': 704297985, 'defense': 170560.00000000003},
+    'Warlord 2':   { 'hp': 1869964315, 'defense': 296040.0},
+    'Warlord 3':   { 'hp': 4059876170, 'defense': 723840.0},
+    'Pan Ground 1':{ 'hp': 599981700, 'defense': 188500.0},
+    'Pan Ground 2':{ 'hp': 3247900936, 'defense': 506688.0},
+    'Pan Ground 3':{ 'hp': 6160862088, 'defense': 1103856.0},
+    'Pan Ranged 1':{ 'hp': 599981700, 'defense': 188500.0},
+    'Pan Ranged 2':{ 'hp': 3247900936, 'defense': 506688.0},
+    'Pan Ranged 3':{ 'hp': 6160862088, 'defense': 1103856.0},
+    'Pan Mounted 1':{ 'hp': 599981700, 'defense': 188500.0},
+    'Pan Mounted 2':{ 'hp': 3247900936, 'defense': 506688.0},
+    'Pan Mounted 3':{ 'hp': 6160862088, 'defense': 1103856.0},
+    'Desert 5':	   { 'hp': 684741775, 'defense': 203636.0},
+    'Desert 6':	   { 'hp': 1074613990, 'defense': 261559.0},
+    'Desert 7':	   { 'hp': 1845539262, 'defense': 353206.0},
+    'Desert 8':	   { 'hp': 2646694539, 'defense': 431517.99999999994},
+    'Desert 9':	   { 'hp': 7135638356, 'defense': 1722739.0},
+    'Desert 10':   { 'hp': 13207792150, 'defense': 3534058.0},
+    'Viking Hard 33':	   { 'hp': 0, 'defense': 0},
+    'Viking Hard 34':	   { 'hp': 0, 'defense': 0},
+    'Viking Hard 35':	   { 'hp': 0, 'defense': 0},
+    'Viking Hard 36':	   { 'hp': 0, 'defense': 0},
+    'Viking Hard 37':	   { 'hp': 0, 'defense': 0},
+    'x':	   { 'hp': 0, 'defense': 0},
+    'x':	   { 'hp': 0, 'defense': 0},
+
     # ... add additional monsters as needed
 }
 
@@ -72,10 +109,10 @@ COEFF_BASIC = {
 }
 
 COEFF_VS_PAN = {
-    'ground':  { 'Pan (Ground)': 0.9, 'Pan (Ranged)': 4.08, 'Pan (Mounted)': 0.7 },
-    'ranged':  { 'Pan (Ground)': 1.0, 'Pan (Ranged)': 1.0,  'Pan (Mounted)': 3.67 },
-    'mounted': { 'Pan (Ground)': 1.4, 'Pan (Ranged)': 0.65, 'Pan (Mounted)': 0.76 },
-    'siege':   { 'Pan (Ground)': 0.5, 'Pan (Ranged)': 0.5,  'Pan (Mounted)': 0.5 },
+    'ground':  { 'Pan Ground': 0.9, 'Pan Ranged': 4.08, 'Pan Mounted': 0.7 },
+    'ranged':  { 'Pan Ground': 1.0, 'Pan Ranged': 1.0,  'Pan Mounted': 3.67 },
+    'mounted': { 'Pan Ground': 1.4, 'Pan Ranged': 0.65, 'Pan Mounted': 0.76 },
+    'siege':   { 'Pan Ground': 0.5, 'Pan Ranged': 0.5,  'Pan Mounted': 0.5 },
 }
 
 def calc_troop_attack(base_atk, attack_buff_pct, absolute_buff=0):
@@ -132,7 +169,14 @@ def calculate_troops(troop_type, tier, monster_name,
 
     monster = MONSTER_DATA[monster_name]
     coeff_table = COEFF_VS_PAN if vs_pan else COEFF_BASIC
-    key = 't1-t10' if tier <= 10 else 't11-t16'
+    if vs_pan:
+        key = monster_name[:-2]
+    else:
+        key = 't1-t10' if tier <= 10 else 't11-t16'
+    logger.debug(
+        "Coeff key %s",
+        key, 
+    )
     coeff = coeff_table[troop_type][key]
 
     logger.debug(
@@ -161,6 +205,12 @@ def calculate_troops(troop_type, tier, monster_name,
 
     return int(needed)
 
+def reverse_mdefense(ta, damage, coeff):
+    if coeff == 0:
+        coeff = 1.1
+    if ta == 0:
+        ta = TROOP_STATS.get(('mounted', 12))
+    return coeff * ta*ta / damage - ta
 
 def main():
     parser = argparse.ArgumentParser(
